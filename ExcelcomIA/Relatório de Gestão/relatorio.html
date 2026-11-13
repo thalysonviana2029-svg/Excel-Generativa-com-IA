@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro de Pedidos</title>
+
+<style>
+:root {
+  --navy: #17365d;
+  --blue: #2563eb;
+  --bg: #f3f6fb;
+  --ink: #172033;
+  --muted: #667085;
+  --line: #e3e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px Arial, sans-serif;
+}
+
+header {
+  background: linear-gradient(120deg, #142c4d, #24558c);
+  color: white;
+  padding: 25px;
+}
+
+header h1 {
+  margin: 5px 0;
+}
+
+main {
+  max-width: 1240px;
+  margin: 24px auto;
+  padding: 0 18px 40px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric, .panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 17px;
+  box-shadow: 0 8px 28px rgba(22,43,77,.08);
+}
+
+.metric span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metric strong {
+  display: block;
+  font-size: 24px;
+  margin-top: 6px;
+  color: var(--navy);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.panel {
+  margin-bottom: 18px;
+}
+
+.panel h2 {
+  font-size: 18px;
+  color: var(--navy);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.field.full {
+  grid-column: 1/-1;
+}
+
+label {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+input, select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cfd7e3;
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+}
+
+.readonly {
+  background: #f7f9fc;
+}
+
+.summary {
+  background: #f5f8fc;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 5px 0 15px;
+}
+
+.sumrow {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  color: #475467;
+}
+
+.sumrow.total {
+  border-top: 1px solid #d9e1ed;
+  margin-top: 7px;
+  padding-top: 12px;
+  color: var(--navy);
+  font-weight: bold;
+  font-size: 17px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--blue);
+  color: white;
+  width: 100%;
+}
+
+.secondary {
+  background: #edf2f8;
+  color: #344054;
+}
+
+.danger {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notice {
+  display: none;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.toolbar input {
+  max-width: 260px;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+th {
+  background: #f1f5f9;
+  text-align: left;
+}
+
+th, td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+td.num {
+  text-align: right;
+}
+
+.tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.tag {
+  background: #edf4ff;
+  color: #2457a6;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media(max-width:900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+@media(max-width:520px) {
+  .form-grid, .tables {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Cadastro e Consulta de Pedidos</h1>
+  <p>Controle de vendas, produtos, regiões, valores e fretes</p>
+</header>
+
+<main>
+
+<section class="metrics">
+  <div class="metric">
+    <span>Faturamento registrado</span>
+    <strong id="mRevenue">R$ 0,00</strong>
+  </div>
+
+  <div class="metric">
+    <span>Pedidos</span>
+    <strong id="mOrders">0</strong>
+  </div>
+
+  <div class="metric">
+    <span>Unidades vendidas</span>
+    <strong id="mUnits">0</strong>
+  </div>
+
+  <div class="metric">
+    <span>Frete total</span>
+    <strong id="mFreight">R$ 0,00</strong>
+  </div>
+</section>
+
+<div class="layout">
+
+<section class="panel">
+
+<h2 id="formTitle">Novo pedido</h2>
+
+<form id="orderForm">
+
+<div class="field">
+<label>Número do pedido</label>
+<input id="orderId" class="readonly" readonly>
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label>Data</label>
+<input id="date" type="date" required value="2024-11-17">
+</div>
+
+<div class="field">
+<label>Estado (UF)</label>
+<select id="state" required>
+<option>GO</option>
+<option>SP</option>
+<option>RS</option>
+<option>BA</option>
+<option>RJ</option>
+<option>PR</option>
+<option>MG</option>
+<option>AM</option>
+<option>ES</option>
+</select>
+</div>
+
+<div class="field full">
+<label>Região</label>
+<select id="region" required>
+<option>Região Centro-Oeste</option>
+<option>Região Nordeste</option>
+<option>Região Norte</option>
+<option>Região Sul</option>
+<option>Região Sudeste</option>
+</select>
+</div>
+
+<div class="field full">
+<label>Produto</label>
+<select id="product" required></select>
+</div>
+
+<div class="field">
+<label>Quantidade</label>
+<input id="quantity" type="number" min="1" value="1" required>
+</div>
+
+<div class="field">
+<label>Valor unitário</label>
+<input id="unitPrice" class="readonly" readonly>
+</div>
+
+</div>
+
+<div class="summary">
+
+<div class="sumrow">
+<span>Subtotal</span>
+<strong id="subtotal">R$ 0,00</strong>
+</div>
+
+<div class="sumrow">
+<span>Frete da região</span>
+<strong id="freight">R$ 0,00</strong>
+</div>
+
+<div class="sumrow total">
+<span>Total do pedido</span>
+<strong id="total">R$ 0,00</strong>
+</div>
+
+</div>
+
+<div class="actions">
+<button class="primary" type="submit" id="saveBtn">
+Cadastrar pedido
+</button>
+
+<button class="secondary" type="button" id="clearBtn">
+Limpar
+</button>
+</div>
+
+<div class="notice" id="notice"></div>
+
+</form>
+</section>
+
+<div>
+
+<section class="panel">
+
+<h2>Pedidos cadastrados</h2>
+
+<div class="toolbar">
+<input id="search" type="search"
+placeholder="Buscar pedido, estado ou produto...">
+
+<select id="filterRegion">
+<option value="">Todas as regiões</option>
+<option>Região Centro-Oeste</option>
+<option>Região Nordeste</option>
+<option>Região Norte</option>
+<option>Região Sul</option>
+<option>Região Sudeste</option>
+</select>
+
+<button class="secondary" id="exportBtn" type="button">
+Exportar CSV
+</button>
+
+<button class="danger" id="resetBtn" type="button">
+Restaurar dados originais
+</button>
+</div>
+
+<div class="table-wrap">
+<table>
+
+<thead>
+<tr>
+<th>Pedido</th>
+<th>Região</th>
+<th>UF</th>
+<th>Produto</th>
+<th>Data</th>
+<th>Qtd.</th>
+<th>Unitário</th>
+<th>Frete</th>
+<th>Total</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="ordersBody"></tbody>
+
+</table>
+</div>
+</section>
+
+<section class="panel">
+
+<h2>Tabelas de referência</h2>
+
+<div class="tables">
+
+<div>
+<h3>Preços dos produtos</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Produto</th>
+<th>Preço unitário</th>
+</tr>
+</thead>
+<tbody id="priceBody"></tbody>
+</table>
+</div>
+</div>
+
+<div>
+<h3>Valores de frete</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Região</th>
+<th>Frete</th>
+</tr>
+</thead>
+<tbody id="freightBody"></tbody>
+</table>
+</div>
+</div>
+
+</div>
+</section>
+
+</div>
+</div>
+
+<footer>
+Sistema de Gestão Comercial - Cadastro de Pedidos
+</footer>
+
+</main>
+
+<script>
+
+const products = [
+["Pen drive 32GB",45],
+["Monitor OLED 33\"",1790],
+["Smartphone Android",3200],
+["Smart TV 50\" 4K",2950],
+["TV 48\" 4K",2840],
+["TV 60\" 4K",3470],
+["Smartphone iOS",8300]
+];
+
+const freights = {
+"Região Centro-Oeste":15,
+"Região Nordeste":20,
+"Região Norte":25,
+"Região Sul":15,
+"Região Sudeste":10
+};
+
+const initial = [
+[1001,"Região Centro-Oeste","GO","Smartphone iOS","2024-11-17",4,8300,15,33215],
+[1002,"Região Sudeste","SP","Pen drive 32GB","2024-11-17",4,45,10,190],
+[1003,"Região Sul","RS","Smartphone iOS","2024-11-17",2,8300,15,16615],
+[1004,"Região Sul","RS","Monitor OLED 33\"","2024-11-17",1,1790,15,1805],
+[1005,"Região Sudeste","SP","Smart TV 50\" 4K","2024-11-18",1,2950,10,2960],
+[1006,"Região Nordeste","BA","Smartphone Android","2024-11-18",4,3200,20,12820],
+[1007,"Região Sudeste","SP","Smart TV 50\" 4K","2024-11-18",2,2950,10,5910],
+[1008,"Região Sudeste","RJ","TV 48\" 4K","2024-11-19",4,2840,10,11370],
+[1009,"Região Nordeste","BA","Smart TV 50\" 4K","2024-11-19",5,2950,20,14770],
+[1010,"Região Sudeste","RJ","Smartphone Android","2024-11-19",1,3200,10,3210],
+[1011,"Região Sudeste","RJ","TV 60\" 4K","2024-11-19",1,3470,10,3480],
+[1012,"Região Centro-Oeste","GO","Monitor OLED 33\"","2024-11-19",3,1790,15,5385],
+[1013,"Região Sudeste","MG","TV 60\" 4K","2024-11-20",5,3470,10,17360],
+[1014,"Região Norte","AM","Smartphone Android","2024-11-20",4,3200,25,12825],
+[1015,"Região Sudeste","MG","Pen drive 32GB","2024-11-20",5,45,10,235],
+[1016,"Região Sudeste","ES","Monitor OLED 33\"","2024-11-20",4,1790,10,7170],
+[1017,"Região Sudeste","ES","Pen drive 32GB","2024-11-20",1,45,10,55],
+[1018,"Região Sul","PR","Smartphone iOS","2024-11-20",2,8300,15,16615],
+[1019,"Região Sul","PR","Monitor OLED 33\"","2024-11-20",5,1790,15,8965],
+[1020,"Região Sul","PR","Smartphone iOS","2024-11-20",1,8300,15,8315],
+[1021,"Região Sudeste","SP","Monitor OLED 33\"","2024-11-21",5,1790,10,8960],
+[1022,"Região Sudeste","SP","Smartphone Android","2024-11-21",1,3200,10,3210],
+[1023,"Região Sul","RS","TV 60\" 4K","2024-11-21",2,3470,15,6955],
+[1024,"Região Sudeste","SP","Monitor OLED 33\"","2024-11-21",5,1790,10,8960],
+[1025,"Região Sudeste","RJ","Monitor OLED 33\"","2024-11-21",5,1790,10,8960],
+[1026,"Região Sudeste","RJ","TV 60\" 4K","2024-11-21",3,3470,10,10420],
+[1027,"Região Sudeste","MG","Monitor OLED 33\"","2024-11-21",3,1790,10,5380],
+[1028,"Região Sudeste","MG","Smartphone iOS","2024-11-21",1,8300,10,8310],
+[1029,"Região Nordeste","BA","Pen drive 32GB","2024-11-21",3,45,20,155]
+];
+
+const money = n => n.toLocaleString("pt-BR", {
+  style:"currency",
+  currency:"BRL"
+});
+
+const dateBR = s => s.split("-").reverse().join("/");
+
+let orders = JSON.parse(
+  localStorage.getItem("pedidosGestaoV1") || "null"
+) || initial.map(r => ({
+  id:r[0],
+  region:r[1],
+  state:r[2],
+  product:r[3],
+  date:r[4],
+  qty:r[5],
+  price:r[6],
+  freight:r[7],
+  total:r[8]
+}));
+
+let editingId = null;
+
+const $ = id => document.getElementById(id);
+
+function saveLocal() {
+  localStorage.setItem(
+    "pedidosGestaoV1",
+    JSON.stringify(orders)
+  );
+}
+
+function fillSelects() {
+
+  $("product").innerHTML = products.map(p =>
+    `<option value="${p[0]}">${p[0]}</option>`
+  ).join("");
+
+  $("priceBody").innerHTML = products.map(p =>
+    `<tr><td>${p[0]}</td><td>${money(p[1])}</td></tr>`
+  ).join("");
+
+  $("freightBody").innerHTML =
+    Object.entries(freights).map(([r,v]) =>
+      `<tr><td>${r}</td><td>${money(v)}</td></tr>`
+    ).join("");
+}
+
+function updateCalc() {
+
+  const p = products.find(
+    p => p[0] === $("product").value
+  ) || products[0];
+
+  const q = Math.max(
+    0,
+    Number($("quantity").value) || 0
+  );
+
+  const f = freights[$("region").value] || 0;
+
+  $("unitPrice").value = money(p[1]);
+  $("subtotal").textContent = money(p[1] * q);
+  $("freight").textContent = money(f);
+  $("total").textContent = money(p[1] * q + f);
+}
+
+function nextId() {
+  return Math.max(1029, ...orders.map(o => o.id)) + 1;
+}
+
+function clearForm() {
+
+  editingId = null;
+
+  $("orderForm").reset();
+  $("date").value = "2024-11-17";
+  $("quantity").value = 1;
+  $("orderId").value = nextId();
+
+  $("formTitle").textContent = "Novo pedido";
+  $("saveBtn").textContent = "Cadastrar pedido";
+  $("notice").style.display = "none";
+
+  updateCalc();
+}
+
+function render() {
+
+  const q = $("search").value.toLowerCase();
+  const reg = $("filterRegion").value;
+
+  const filtered = orders.filter(o =>
+    (!reg || o.region === reg) &&
+    [o.id,o.region,o.state,o.product,dateBR(o.date)]
+      .join(" ")
+      .toLowerCase()
+      .includes(q)
+  );
+
+  $("ordersBody").innerHTML = filtered.map(o => `
+    <tr>
+      <td><b>${o.id}</b></td>
+      <td>${o.region}</td>
+      <td><span class="tag">${o.state}</span></td>
+      <td>${o.product}</td>
+      <td>${dateBR(o.date)}</td>
+      <td class="num">${o.qty}</td>
+      <td class="num">${money(o.price)}</td>
+      <td class="num">${money(o.freight)}</td>
+      <td class="num"><b>${money(o.total)}</b></td>
+      <td>
+        <button class="secondary" onclick="editOrder(${o.id})">Editar</button>
+        <button class="danger" onclick="deleteOrder(${o.id})">Excluir</button>
+      </td>
+    </tr>
+  `).join("") || `
+    <tr><td colspan="10">Nenhum pedido encontrado.</td></tr>
+  `;
+
+  $("mRevenue").textContent = money(
+    orders.reduce((s,o) => s + o.total,0)
+  );
+
+  $("mOrders").textContent = orders.length;
+
+  $("mUnits").textContent =
+    orders.reduce((s,o) => s + o.qty,0);
+
+  $("mFreight").textContent = money(
+    orders.reduce((s,o) => s + o.freight,0)
+  );
+}
+
+function editOrder(id) {
+
+  const o = orders.find(x => x.id === id);
+
+  if (!o) return;
+
+  editingId = id;
+
+  $("orderId").value = o.id;
+  $("date").value = o.date;
+  $("state").value = o.state;
+  $("region").value = o.region;
+  $("product").value = o.product;
+  $("quantity").value = o.qty;
+
+  $("formTitle").textContent = "Editar pedido #" + id;
+  $("saveBtn").textContent = "Salvar alterações";
+
+  updateCalc();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+function deleteOrder(id) {
+
+  if (!confirm("Excluir o pedido " + id + "?")) return;
+
+  orders = orders.filter(o => o.id !== id);
+
+  saveLocal();
+  render();
+
+  if (editingId === id) clearForm();
+}
+
+$("orderForm").addEventListener("submit", e => {
+
+  e.preventDefault();
+
+  const p = products.find(
+    p => p[0] === $("product").value
+  );
+
+  const qty = Number($("quantity").value);
+  const freight = freights[$("region").value];
+
+  if (!p || !qty || qty < 1) return;
+
+  const record = {
+    id: editingId ?? nextId(),
+    region: $("region").value,
+    state: $("state").value,
+    product: p[0],
+    date: $("date").value,
+    qty,
+    price: p[1],
+    freight,
+    total: p[1] * qty + freight
+  };
+
+  if (editingId !== null) {
+    orders = orders.map(o =>
+      o.id === editingId ? record : o
+    );
+  } else {
+    orders.push(record);
+  }
+
+  saveLocal();
+  render();
+
+  $("notice").textContent =
+    "Pedido " + record.id + " salvo com sucesso.";
+
+  $("notice").style.display = "block";
+
+  clearForm();
+});
+
+["product","quantity","region"].forEach(id =>
+  $(id).addEventListener("input", updateCalc)
+);
+
+$("clearBtn").addEventListener("click", clearForm);
+
+$("search").addEventListener("input", render);
+
+$("filterRegion").addEventListener("change", render);
+
+$("resetBtn").addEventListener("click", () => {
+
+  if (!confirm("Restaurar os 29 pedidos originais?")) return;
+
+  orders = initial.map(r => ({
+    id:r[0],
+    region:r[1],
+    state:r[2],
+    product:r[3],
+    date:r[4],
+    qty:r[5],
+    price:r[6],
+    freight:r[7],
+    total:r[8]
+  }));
+
+  saveLocal();
+  clearForm();
+  render();
+});
+
+$("exportBtn").addEventListener("click", () => {
+
+  const rows = [
+    ["Pedido","Região","Estado","Produto","Data",
+     "Quantidade","Valor Unitário","Frete","Total"],
+
+    ...orders.map(o => [
+      o.id,o.region,o.state,o.product,dateBR(o.date),
+      o.qty,o.price,o.freight,o.total
+    ])
+  ];
+
+  const csv = "\uFEFF" + rows.map(r =>
+    r.map(v =>
+      '"' + String(v).replaceAll('"','""') + '"'
+    ).join(";")
+  ).join("\n");
+
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(
+    new Blob([csv], {
+      type:"text/csv;charset=utf-8;"
+    })
+  );
+
+  a.download = "pedidos.csv";
+  a.click();
+
+  URL.revokeObjectURL(a.href);
+});
+
+fillSelects();
+clearForm();
+render();
+
+</script>
+
+</body>
+</html>
